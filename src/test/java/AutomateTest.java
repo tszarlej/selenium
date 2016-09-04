@@ -1,9 +1,5 @@
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -14,45 +10,62 @@ import static org.testng.Assert.assertEquals;
 public class AutomateTest {
 
 	private WebDriver driver;
-	private WebDriverWait driverWait;
-	private static final String GMAIL_LOGIN_PAGE_URL = "https://mail.google.com";
-	private static final String EMAIL_FIELD_ID = "Email";
-	private static final String PASSWORD_FIELD_ID = "Passwd";
-	private static final String NEXT_BUTTON_ID = "next";
-	private static final String SIGN_IN_BUTTON_ID = "signIn";
-	private static final String PASSWORD_ERROR_MESSAGE_ID = "errormsg_0_Passwd";
 
 	@BeforeClass
 	public void generalSetUp() {
-		System.setProperty("webdriver.chrome.driver","src/test/resources/chromedriver_mac");
+		System.setProperty("webdriver.chrome.driver","src/test/resources/chromedriver.exe");
 	}
 
 	@BeforeMethod
-	public void setUp() {;
+	public void setup() {
 		this.driver = new ChromeDriver();
-		this.driverWait = new WebDriverWait(driver, 10);
 	}
 
 	@AfterMethod
-	public void tearDown() {
-		driver.quit();
+	public void close() {
+		this.driver.close();
 	}
 
 	@Test
-	public void loginWithBadPassword() {
-		driver.get(GMAIL_LOGIN_PAGE_URL);
+	public void testWrongPasswordErrorMessage() {
 
-		driverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id(EMAIL_FIELD_ID)));
-		driver.findElement(By.id(EMAIL_FIELD_ID)).sendKeys("tszarlej@gmail.com");
-		driver.findElement(By.id(NEXT_BUTTON_ID)).click();
+		LoginPage page = new LoginPage(driver);
+		page.openPage();
+		page.inputEmail("julia.szarlej");
+		page.inputPassword("wrongPassword");
+		String text = page.getPasswordErrorMessage();
 
-		driverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id(PASSWORD_FIELD_ID)));
-		driver.findElement(By.id(PASSWORD_FIELD_ID)).sendKeys("test");
-		driver.findElement(By.id(SIGN_IN_BUTTON_ID)).click();
+		assertEquals(text, "Podany przez Ciebie adres e-mail i hasło nie zgadzają się.");
 
-		driverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id(PASSWORD_ERROR_MESSAGE_ID)));
-		WebElement webElement = driver.findElement(By.id(PASSWORD_ERROR_MESSAGE_ID));
-		assertEquals(webElement.getText(), "The email and password you entered don't match.");
+	}
+
+	@Test
+	public void testWrongPasswordErrorMessageOnet() {
+
+		LoginPageOnet onet = new LoginPageOnet(driver);
+		onet.openPage();
+		onet.inputEmail("juliachroscicka@poczta.onet.pl");
+		onet.inputPassword("wrong");
+		String text = onet.getPasswordErrorMessage();
+
+		assertEquals(text, "Wprowadź poprawne dane.");
+
+
+	}
+
+
+	@Test
+	public void testWrongPasswordMessage(WebDriver driver) {
+
+		LoginPageBG loginPage = new LoginPageBG(driver);
+		loginPage.openPage();
+		loginPage.inputEmail(driver);
+		loginPage.inputPassword(driver);
+		loginPage.clickLoginButton();
+		String text = loginPage.GetPasswordErrorMessage(driver);
+
+		assertEquals(text, "Logowanie nie powiodło się. Niepoprawny login lub hasło.");
+
 	}
 
 }
